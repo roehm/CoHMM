@@ -40,8 +40,11 @@ CXX=mpicxx
 #CXX=/home/droehm/vampirTrace/bin/vtcxx -vt:cxx mpicxx
 LIBCIRCLELIBS=$(shell pkg-config --libs libcircle)
 LIBCIRCLE_CFLAGS=$(shell pkg-config --cflags libcircle)
-ifeq ($(LIBCIRCLELIBS), )
-$(error Set LIBCIRCLELIBS or run 'module load libcircle' first)
+ifeq ($(LIBCIRCLEROOT), )
+$(error Set LIBCIRCLEROOT or run 'module load libcircle' first)
+else
+LIBCIRCLELIBS=-L$(LIBCIRCLEROOT)/.libs -lcircle
+LIBCIRCLE_CFLAGS=-I$(LIBCIRCLEROOT)/libcircle
 endif
 OBJDIR=circle_obj
 BINDIR=circle_bin
@@ -95,7 +98,7 @@ ifeq ($(LINALGROOT), )
   MKL_LDFLAG= -L$(MKLLIB) -lmkl_rt
 else
   #LINALG_CFLAGS=-I$(LINALGINC) -llapack
-  LINALG_LDFLAG= -lblas -llapack
+  LINALG_LDFLAG=-L$(LINALGLIB) -lblas -llapack
 endif
 
 #OPTFLAGS=-g
