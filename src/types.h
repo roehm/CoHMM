@@ -84,6 +84,8 @@ typedef struct{
   double grad_threshold;
   int test_problem;
   int fault_tolerance;
+  int co_tasks;
+  int kr_tasks;
 
 } Save_Input;
 /** struct containing the 2D field 
@@ -115,6 +117,8 @@ typedef struct : public Save_Input {
     p|test_problem;
     p|fault_tolerance;
     p|flush_db;
+    p|co_tasks;
+    p|kr_tasks;
   }
 
 #endif
