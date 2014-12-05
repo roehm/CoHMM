@@ -22,8 +22,8 @@ BINDIR=charm_bin
 #############CNC############
 else ifeq ($(SET), cnc) 
 CXXFLAGS+=-DCNC
-#CXX=icpc
-CXX=g++
+CXX=icpc
+#CXX=g++
 #CXX=/home/droehm/vampirTrace/bin/vtcxx
 OBJDIR=cnc_obj
 BINDIR=cnc_bin
@@ -66,8 +66,8 @@ endif
 ifeq ($(HIREDIS_INCLUDES), )
 $(error Set HIREDIS_INCLUDES or run 'module load hiredis' first)
 endif
-HIREDISLIB=$(HIREDIS_INCLUDES)
-HIREDISINC=$(HIREDIS_INCLUDES)
+HIREDISLIB=$(HIREDIS_INCLUDES)/../lib
+HIREDISINC=$(HIREDIS_INCLUDES)/hiredis
 HIREDIS_CFLAG=-I$(HIREDISINC)
 HIREDIS_LDFLAG=-L$(HIREDISLIB) -lhiredis
 
