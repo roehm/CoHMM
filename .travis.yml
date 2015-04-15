@@ -24,7 +24,7 @@ before_script:
   - if [[ $SET = cnc ]]; then 
       git clone --depth=1 https://github.com/icnc/icnc.git && 
       cd icnc &&
-      cmake -DCMAKE_CXX_FLAGS="-DCNC_REQUIRED_TBB_VERSION=6101" . &&
+      cmake . &&
       make -j4 && sudo make install && export CNCROOT=/usr/local &&
       export LD_LIBRARY_PATH=/usr/local/lib/intel64 &&
       cd ..;
