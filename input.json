@@ -1,11 +1,11 @@
 {"parameter": {
     "header": "D2KS2 Input File",
     "macro_solver": [
-        {"id": "dim x",                     "value": 50},
-        {"id": "dim y",                     "value": 50},
+        {"id": "dim x",                     "value": 100},
+        {"id": "dim y",                     "value": 10},
         {"id": "integration steps",         "value": 25},
         {"id": "redis database",            "value": 1},
-        {"id": "flush database",            "value": 0},
+        {"id": "flush database",            "value": 1},
         {"id": "redis headnode",            "value": "localhost"},
         {"id": "database threshold",        "value": 0.00001},
         {"id": "enable kriging",            "value": 1},
@@ -18,7 +18,7 @@
         {"id": "dt_x",                      "value": 0.1},
         {"id": "dt_y",                      "value": 0.1},
         {"id": "grad threshold",            "value": 0.001},
-        {"id": "test problem",              "value": 2},
+        {"id": "test problem",              "value": 1},
         {"id": "fault tolerance",           "value": 1}
     ],
     "mini_app": [
