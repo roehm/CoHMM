@@ -317,20 +317,20 @@ bool ifConservedFieldsMatch(double * w0, std::vector<double *> * wVec, double db
  * @return *out       returns flux output information about computed fluxes on specific node (output)
  * @param *dbCache    database cache pointer (input)
  * **/
-template <typename T> void doParallelCalls(Node * fields, Node * fluxes, Input in, std::list<gridPoint> * comdTasks, std::list<gridPoint> * krigTasks, std::map<std::string, std::vector<char *> > *dbCache, Calls* ca, Tms *tm, T context, redisContext *headRedis)
+template <typename T> void doParallelCalls(Node * fields, Node * fluxes, Input *in, std::list<gridPoint> * comdTasks, std::list<gridPoint> * krigTasks, std::map<std::string, std::vector<char *> > *dbCache, Calls* ca, Tms *tm, T context, redisContext *headRedis)
 {
 	//fprintf(stdout, "Starting parallel \n");
 	//fflush(stdout);
 
-	int dim_x = in.dim_x;
-	int dim_y = in.dim_y;
+	int dim_x = in->dim_x;
+	int dim_y = in->dim_y;
 
 	//For both lists, enqueue unique tasks, map the rest
 	std::map<Conserved, std::list<gridPoint>, ConservedComparator_c> taskMap;
 
 	std::vector<fluxInput> fluxInArgs;
     char headNode[1024];
-	strcpy(headNode, in.head_node.c_str());
+	strcpy(headNode, in->head_node.c_str());
 
 	//Do kriging first so as to prioritize the cheaper solution
 	for(std::list<gridPoint>::iterator iter = krigTasks->begin(); iter != krigTasks->end(); iter++)
@@ -346,14 +346,14 @@ template <typename T> void doParallelCalls(Node * fields, Node * fluxes, Input i
 		{
 			//It was, add it to the task queue
 #ifdef CNC
-			fluxInArgs.push_back(fluxInput(*w, false, headNode, in.kr_threshold));
+			fluxInArgs.push_back(fluxInput(*w, false, headNode, in->kr_threshold));
 			int taskID = fluxInArgs.size();
-			context->fluxInp.put(taskID, fluxInput(*w, false, headNode, in.kr_threshold));
+			context->fluxInp.put(taskID, fluxInput(*w, false, headNode, in->kr_threshold));
 			context->tags.put(taskID);
 #elif CHARM
 			fluxInArgs.push_back(fluxInput(*w, false));
 #else
-			fluxInArgs.push_back(fluxInput(*w, false, headNode, in.kr_threshold));
+			fluxInArgs.push_back(fluxInput(*w, false, headNode, in->kr_threshold));
 
 #endif
             ca->krig++;
@@ -375,14 +375,14 @@ template <typename T> void doParallelCalls(Node * fields, Node * fluxes, Input i
 		{
 			//It was, add it to the task queue
 #ifdef CNC
-			fluxInArgs.push_back(fluxInput(*w, true, headNode, in.kr_threshold));
+			fluxInArgs.push_back(fluxInput(*w, true, headNode, in->kr_threshold));
 			int taskID = fluxInArgs.size();
-			context->fluxInp.put(taskID, fluxInput(*w, true, headNode, in.kr_threshold));
+			context->fluxInp.put(taskID, fluxInput(*w, true, headNode, in->kr_threshold));
 			context->tags.put(taskID);
 #elif CHARM
 			fluxInArgs.push_back(fluxInput(*w, true));
 #else
-			fluxInArgs.push_back(fluxInput(*w, true, headNode, in.kr_threshold));
+			fluxInArgs.push_back(fluxInput(*w, true, headNode, in->kr_threshold));
 #endif
             ca->comd++;
             ca->cPoints--;
@@ -399,6 +399,8 @@ template <typename T> void doParallelCalls(Node * fields, Node * fluxes, Input i
 #endif
 #ifndef LOADBAR
 	printf("About to run parallel kriging & MD: %d args, %d MD, %d kriging\n", (int)fluxInArgs.size(), ca->comd, ca->krig);
+  in->co_tasks+=ca->comd;
+  in->kr_tasks+=ca->krig;
 #endif
 	
 	//Empty both task lists
@@ -407,7 +409,7 @@ template <typename T> void doParallelCalls(Node * fields, Node * fluxes, Input i
 
 #ifdef CHARM
     CkReductionMsg *fluxOut;
-    context.fluxFn(fluxInArgs, in, CkCallbackResumeThread((void*&)fluxOut));
+    context.fluxFn(fluxInArgs, *in, CkCallbackResumeThread((void*&)fluxOut));
     
     fluxOutput *fluxOutCharm = (fluxOutput*)fluxOut->getData();
 
@@ -419,7 +421,7 @@ template <typename T> void doParallelCalls(Node * fields, Node * fluxes, Input i
 #pragma omp parallel for schedule(dynamic)
 #endif
     for(int i = 0; i < int(fluxInArgs.size()); i++){
-        fluxFn(&fluxInArgs[i], &fluxOutOmp[i], dbCache, in);
+        fluxFn(&fluxInArgs[i], &fluxOutOmp[i], dbCache, *in);
     }
 #endif//OMP
 #ifdef CIRCLE
@@ -523,7 +525,7 @@ template <typename T> void doParallelCalls(Node * fields, Node * fluxes, Input i
 		freeClear(fVec);
 		freeClear(gVec);
 #if 0
-    redisAsyncContext *c = redisAsyncConnect(in.head_node.c_str(), 6379);
+    redisAsyncContext *c = redisAsyncConnect(in->head_node.c_str(), 6379);
     if (c->err) {
         printf("Error: %s\n", c->errstr);
         // handle error
@@ -740,7 +742,7 @@ template <typename T> void doFluxes(Node* fields, Node* fluxes, int grid_size, I
   //fflush(stdout);
   startCa = getUnixTime();
   //At this point, we know who is getting krig'd and who is getting comd'd, so let's do it
-  doParallelCalls(fields, fluxes, *in, &comdTasks, &krigTasks, &dbCache, &ca, &tm, context, headRedis);
+  doParallelCalls(fields, fluxes, in, &comdTasks, &krigTasks, &dbCache, &ca, &tm, context, headRedis);
   stopCa = getUnixTime();
   tm.ca = stopCa - startCa;
 
@@ -1030,6 +1032,8 @@ void main_2DKriging(Input in, App CoMD)
     printf_fields_vtk(i, nodes_a, in, grid_size);
 #endif//VTK_FIELDS
 #endif//OUTPUT
+    in.co_tasks=0;
+    in.kr_tasks=0;
     //main integration loop
     for (int j = 0; j < 1; j++){
 #ifdef LOADBAR
@@ -1060,9 +1064,11 @@ void main_2DKriging(Input in, App CoMD)
 #ifndef OUTPUT
         //stop total time measurement
         ttime_stop = getUnixTime();
-        fprintf(fn3, "%g\n", ttime_stop-ttime_start);
+        fprintf(fn3, "%i %g %i %i\n", i, ttime_stop-ttime_start, in.co_tasks, in.kr_tasks);
         printf("time: %g time per step: %g\n", ttime_stop-ttime_start, ttime_stop-stime_start);
         fflush(fn3);
+        in.co_tasks=0;
+        in.kr_tasks=0;
 #endif//OUTPUT
     }
     if(in.fault_tolerance == 1){
@@ -1093,22 +1099,22 @@ void main_2DKriging(Input in, App CoMD)
 //template void main_2DKriging(Input in, CProxy_krigingChare krigingChareProxy);
 template void half_step_second_order(Node* node_a, Node* node_b, int grid_size, Input* in, CProxy_krigingChare krigingChareProxy, redisContext *headRedis);
 template void doFluxes(Node* fields, Node* fluxes, int grid_size, Input* in, CProxy_krigingChare krigingChareProxy, redisContext *headRedis);
-template void doParallelCalls(Node * fields, Node * fluxes, Input in, std::list<gridPoint> * comdTasks, std::list<gridPoint> * krigTasks, std::map<std::string, std::vector<char *> > *dbCache, Calls* ca, Tms *tm, CProxy_krigingChare krigingChareProxy, redisContext *headRedis);
+template void doParallelCalls(Node * fields, Node * fluxes, Input *in, std::list<gridPoint> * comdTasks, std::list<gridPoint> * krigTasks, std::map<std::string, std::vector<char *> > *dbCache, Calls* ca, Tms *tm, CProxy_krigingChare krigingChareProxy, redisContext *headRedis);
 #elif CNC
 //template void main_2DKriging(Input in, flux_context* fluxText);
 template void half_step_second_order(Node* node_a, Node* node_b, int grid_size, Input* in, flux_context* fluxText, redisContext *headRedis);
 template void doFluxes(Node* fields, Node* fluxes, int grid_size, Input* in, flux_context* fluxText, redisContext *headRedis);
-template void doParallelCalls(Node * fields, Node * fluxes, Input in, std::list<gridPoint> * comdTasks, std::list<gridPoint> * krigTasks, std::map<std::string, std::vector<char *> > *dbCache, Calls* ca, Tms *tm, flux_context* fluxText, redisContext *headRedis);
+template void doParallelCalls(Node * fields, Node * fluxes, Input *in, std::list<gridPoint> * comdTasks, std::list<gridPoint> * krigTasks, std::map<std::string, std::vector<char *> > *dbCache, Calls* ca, Tms *tm, flux_context* fluxText, redisContext *headRedis);
 #else
 //template void main_2DKriging(Input in, int * context);
 #ifdef CIRCLE
 template void doFluxes(Node* fields, Node* fluxes, int grid_size, Input* in, redisContext *context, redisContext *headRedis);
 template void half_step_second_order(Node* node_a, Node* node_b, int grid_size, Input* in, redisContext *context, redisContext *headRedis);
-template void doParallelCalls(Node * fields, Node * fluxes, Input in, std::list<gridPoint> * comdTasks, std::list<gridPoint> * krigTasks, std::map<std::string, std::vector<char *> > *dbCache, Calls* ca, Tms *tm, redisContext *context, redisContext *headRedis);
+template void doParallelCalls(Node * fields, Node * fluxes, Input *in, std::list<gridPoint> * comdTasks, std::list<gridPoint> * krigTasks, std::map<std::string, std::vector<char *> > *dbCache, Calls* ca, Tms *tm, redisContext *context, redisContext *headRedis);
 #else
 template void doFluxes(Node* fields, Node* fluxes, int grid_size, Input* in, int* context, redisContext *headRedis);
 template void half_step_second_order(Node* node_a, Node* node_b, int grid_size, Input* in, int* context, redisContext *headRedis);
-template void doParallelCalls(Node * fields, Node * fluxes, Input in, std::list<gridPoint> * comdTasks, std::list<gridPoint> * krigTasks, std::map<std::string, std::vector<char *> > *dbCache, Calls* ca, Tms *tm, int* context, redisContext *headRedis);
+template void doParallelCalls(Node * fields, Node * fluxes, Input *in, std::list<gridPoint> * comdTasks, std::list<gridPoint> * krigTasks, std::map<std::string, std::vector<char *> > *dbCache, Calls* ca, Tms *tm, int* context, redisContext *headRedis);
 #endif
 #endif
 
