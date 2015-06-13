@@ -5,7 +5,7 @@ cd $dir
 rm -r cn*
 sleep 1
 master=
-[[ ! -f $i ]] && echo "No hostfile given!" >&2 && exit 1
+[[ ! -f $1 ]] && echo "No hostfile given!" >&2 && exit 1
 for i in $(cat "$1"); do
     mkdir "$i"
     cd "$i"
