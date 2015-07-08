@@ -5,7 +5,7 @@
         {"id": "dim y",                     "value": 100},
         {"id": "integration steps",         "value": 50},
         {"id": "redis database",            "value": 1},
-        {"id": "flush database",            "value": 1},
+        {"id": "flush database",            "value": 0},
         {"id": "redis headnode",            "value": "localhost"},
         {"id": "database threshold",        "value": 0.00001},
         {"id": "enable kriging",            "value": 1},
