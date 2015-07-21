@@ -155,6 +155,7 @@ void fluxFn(CIRCLE_handle *handle)
 
 		//Call it
 		CoMD_return theRet = CoMD_lib(&theInput);
+                double determinatDefGrad = 1./(strain_xx*strain_yy-strain_xy*strain_yx);
 
 		//4 stresses
 		double rho = 1.0;
@@ -162,16 +163,16 @@ void fluxFn(CIRCLE_handle *handle)
 		out->f[1] = momentum_y/rho;
 		out->f[2] = 0.0;
 		out->f[3] = 0.0;
-		out->f[4] = theRet.stressXX;
-		out->f[5] = theRet.stressXY;
+		out->f[4] = determinatDefGrad*theRet.stressXX;
+		out->f[5] = determinatDefGrad*theRet.stressXY;
 		out->g[0] = 0.0;
 		out->g[1] = 0.0;
 		out->g[2] = momentum_x/rho;
 		out->g[3] = momentum_y/rho;
-		out->g[4] = theRet.stressYX;
-		out->g[5] = theRet.stressYY;
-		out->f[6] = -theRet.energyDensX;
-		out->g[6] = -theRet.energyDensY;
+		out->g[4] = determinatDefGrad*theRet.stressYX;
+		out->g[5] = determinatDefGrad*theRet.stressYY;
+		out->f[6] = -determinatDefGrad*theRet.energyDensX;
+		out->g[6] = -determinatDefGrad*theRet.energyDensY;
 #elif defined(C_RAND)
     //gaussian noise, gamma = strength
     unsigned int tid = omp_get_thread_num();
@@ -366,6 +367,7 @@ void fluxFn(CIRCLE_handle *handle)
 
 		    //Call it
 		    CoMD_return theRet = CoMD_lib(&theInput);
+                    double determinatDefGrad = 1./(strain_xx*strain_yy-strain_xy*strain_yx);
 
 		    //4 stresses
 		    double rho = 1.0;
@@ -373,16 +375,16 @@ void fluxFn(CIRCLE_handle *handle)
 		    out->f[1] = momentum_y/rho;
 		    out->f[2] = 0.0;
 		    out->f[3] = 0.0;
-		    out->f[4] = theRet.stressXX;
-		    out->f[5] = theRet.stressXY;
+		    out->f[4] = determinatDefGrad*theRet.stressXX;
+		    out->f[5] = determinatDefGrad*theRet.stressXY;
 		    out->g[0] = 0.0;
 		    out->g[1] = 0.0;
 		    out->g[2] = momentum_x/rho;
 		    out->g[3] = momentum_y/rho;
-		    out->g[4] = theRet.stressYX;
-		    out->g[5] = theRet.stressYY;
-		    out->f[6] = -theRet.energyDensX;
-		    out->g[6] = -theRet.energyDensY;
+		    out->g[4] = determinatDefGrad*theRet.stressYX;
+		    out->g[5] = determinatDefGrad*theRet.stressYY;
+		    out->f[6] = -determinatDefGrad*theRet.energyDensX;
+		    out->g[6] = -determinatDefGrad*theRet.energyDensY;
         //delete &theRet;
 #elif defined(C_RAND)
         //gaussian noise, gamma = strength
