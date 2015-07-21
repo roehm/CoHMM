@@ -24,7 +24,6 @@ extern "C"
 //#define DISTDB
 /* enable CoMD lib */
 #define CoMD
-//#define UNIXSOCKETS
 /* enable Gaussian noise */
 //#define C_RAND
 
@@ -49,7 +48,6 @@ void fluxFn(CIRCLE_handle *handle)
 #error Something is wrong
 #endif
 {
-	redisContext * rTask;
 #ifdef CNC
 	fluxInput inVal;
 	fluxText.fluxInp.get(id, inVal);
@@ -76,7 +74,7 @@ void fluxFn(CIRCLE_handle *handle)
   Input inp;
   inp.head_node = in->headNode;
   inp.kr_threshold = in->kr_threshold;
-#endif
+#endif//CIRCLE
 	//Prep outputs
   out->callCoMD = false;
 	out->error = 0.0;
@@ -99,34 +97,19 @@ void fluxFn(CIRCLE_handle *handle)
   //if(diff1 > 1.0) printf("CONNECTION timing %lf\n", diff1);
 	if(rTask == NULL || rTask->err)
 	{
-#ifdef CIRCLE
-  	//Make redis context
-#ifdef UNIXSOCKETS
-  	rTask = redisConnectUnix((char*)"/tmp/redis.sock");
+		printf("Redis error: %s\n", rTask->errstr);
+		printf("Redis error: %s\n", inp.head_node.c_str());
+#ifdef CHARM
+    CkExit();
 #else
-  	rTask = redisConnect(inp.head_node.c_str(), 6379);
+    exit(0);
 #endif
-  	//CkPrintf("Redis headnode: %s\n", headNode.c_str());
-  	if(rTask == NULL || rTask->err)
-  	{
-  		//printf("Redis error: %s\n", rTask->errstr);
-  		//printf("Redis error: %s\n", in->headNode);
-  		printf("Redis connection delay\n");
-      //sleep(20);
-#ifdef UNIXSOCKETS
-  	rTask = redisConnectUnix((char*)"/tmp/redis.sock");
-#else
-  	rTask = redisConnect(inp.head_node.c_str(), 6379);
+		//return NULL;
+	}
 #endif
-  	}
-    //if(diff1 > 1.0) printf("CONNECTION timing %lf\n", diff1);
-  	if(rTask == NULL || rTask->err)
-  	{
-  		printf("Redis error: %s\n", rTask->errstr);
-  		printf("Redis error: %s\n", inp.head_node.c_str());
-      exit(0);
-  	}
-#endif
+	//Is this CoMD?
+	if(in->callCoMD == true)
+	{
     double startCo = getUnixTime();
 		//Call CoMD
 		//4 strains
@@ -255,8 +238,7 @@ void fluxFn(CIRCLE_handle *handle)
     double stopCo = getUnixTime();
     //if(diff1 > 1.0) printf("put timing %lf\n", diff1);
     out->diffCo = stopCo - startCo;
-	  redisFree(rTask);
-#endif//CIRCLE
+#endif
 	}
 	//It is kriging time!
 	else
@@ -271,11 +253,7 @@ void fluxFn(CIRCLE_handle *handle)
 #ifndef DISTDB
 #ifndef CIRCLE
     //Make redis context
-#ifdef UNIXSOCKETS
-  	rTask = redisConnectUnix((char*)"/tmp/redis.sock");
-#else
   	rTask = redisConnect(inp.head_node.c_str(), 6379);
-#endif
   	//CkPrintf("Redis headnode: %s\n", headNode.c_str());
   	if(rTask == NULL || rTask->err)
   	{
@@ -283,11 +261,8 @@ void fluxFn(CIRCLE_handle *handle)
   		//printf("Redis error: %s\n", in->headNode);
   		printf("Redis connection delay\n");
       //sleep(20);
-#ifdef UNIXSOCKETS
-  	rTask = redisConnectUnix((char*)"/tmp/redis.sock");
-#else
-  	rTask = redisConnect(inp.head_node.c_str(), 6379);
-#endif
+  	  rTask = redisConnect(inp.head_node.c_str(), 6379);
+  		//return NULL;
   	}
     //if(diff1 > 1.0) printf("CONNECTION timing %lf\n", diff1);
   	if(rTask == NULL || rTask->err)
@@ -473,7 +448,6 @@ void fluxFn(CIRCLE_handle *handle)
         out->callCoMD = true;
 #if defined (DISTDB) || (CIRCLE)
 		    //Write result to database
-#ifdef CIRCLE 
 		    putData(in->w.w, out->f, out->g, (char *)"comd", rTask, comdDigits);		
 #endif
         double stopCo = getUnixTime();
@@ -482,8 +456,9 @@ void fluxFn(CIRCLE_handle *handle)
         {
             //Write result to database
             putData(in->w.w, out->f, out->g, (char *)"krig", rTask, krigDigits);		
+	          redisFree(rTask);
         }
-	      redisFree(rTask);
+
         stopKr = getUnixTime();
 	}
   out->diffKr = stopKr - startKr;
