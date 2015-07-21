@@ -155,7 +155,7 @@ void fluxFn(CIRCLE_handle *handle)
 
 		//Call it
 		CoMD_return theRet = CoMD_lib(&theInput);
-                double determinatDefGrad = 1./(strain_xx*strain_yy-strain_xy*strain_yx);
+                double determinatDefGrad = strain_xx*strain_yy-strain_xy*strain_yx;
 
 		//4 stresses
 		double rho = 1.0;
@@ -367,7 +367,7 @@ void fluxFn(CIRCLE_handle *handle)
 
 		    //Call it
 		    CoMD_return theRet = CoMD_lib(&theInput);
-                    double determinatDefGrad = 1./(strain_xx*strain_yy-strain_xy*strain_yx);
+                    double determinatDefGrad = strain_xx*strain_yy-strain_xy*strain_yx;
 
 		    //4 stresses
 		    double rho = 1.0;

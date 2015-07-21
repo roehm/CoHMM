@@ -116,8 +116,8 @@ else
   endif
 endif
 
-OPTFLAGS=-g
-#OPTFLAGS=-O3
+#OPTFLAGS=-g
+OPTFLAGS=-O3
 #other features
 #DEFS=-DTRACE
 ifeq ($(SET), cnc) 
