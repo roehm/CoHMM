@@ -19,6 +19,7 @@ ifeq ($(DO_MPI), ON)
 CC = mpicc
 else
 CC = gcc
+#CC = icc
 endif
 CFLAGS = -std=c99
 #OPTFLAGS = -g -O5

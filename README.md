@@ -26,7 +26,7 @@ Dependencies
 
 ###Additional for libcircle:
 
-7. [libcircle](https://github.com/hpc/libcircle)
+  7. [libcircle](https://github.com/hpc/libcircle)
 
 
 Build
@@ -88,7 +88,7 @@ Execution
 
 ###CnC
 
-1. MPI: run 2D_Kriging distributed with 'env DIST_CNC=MPI mpirun -n $(NPROCS x 48) ./2D_Kriging input.json' 
+1. MPI: run 2D_Kriging distributed with 'env DIST_CNC=MPI mpirun -n $NPROCS ./2D_Kriging input.json' 
 
    on Darwin (no infiniband) 'env DIST_CNC=MPI mpirun -n 96 -env I_MPI_FABRICS shm:tcp -hostfile hostfile ~/2014/CoHMM/2D_Kriging input.json'
 

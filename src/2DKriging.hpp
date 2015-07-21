@@ -82,14 +82,14 @@ CNC_BITWISE_SERIALIZABLE(fluxInput);
  * **/
 typedef struct
 {
-	int index;
+  int index;
   double f[7];
-	double g[7];
-	double error;
+  double g[7];
+  double error;
   //timedifference[]
   double diffCo;
   double diffKr;
-	bool callCoMD;
+  bool callCoMD;
 } fluxOutput;
 #ifdef CNC
 CNC_BITWISE_SERIALIZABLE(fluxOutput);

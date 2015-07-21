@@ -77,8 +77,8 @@ $(info Found hiredis in /usr/include, setting HIREDIS_INCLUDES=/usr/include)
 HIREDIS_INCLUDES=/usr/include
 endif
 endif
-HIREDISLIB=$(HIREDIS_INCLUDES)/../lib
-HIREDISINC=$(HIREDIS_INCLUDES)/hiredis
+HIREDISLIB=$(HIREDIS_INCLUDES)
+HIREDISINC=$(HIREDIS_INCLUDES)
 HIREDIS_CFLAG=-I$(HIREDISINC)
 HIREDIS_LDFLAG=-L$(HIREDISLIB) -lhiredis
 
@@ -195,8 +195,8 @@ $(OBJDIR)/%.d: $(SRCDIR)/%.cpp
 	@#1. sed:  put one file per line * * -> *\\\n*
 	@#2. sed gcc -MG does not know that missing files will be in $(SRCDIR)
 	@# no path -> SRCDIR
-	@echo g++ -MM -MG -MT $(OBJDIR)/$*.o $(CXXFLAGS) -I$(SRCDIR) -I$(CHARMINC) $< \> $@
-	@g++ -MM -MG -MT $(OBJDIR)/$*.o $(CXXFLAGS) -I$(SRCDIR) -I$(CHARMINC) $< | \
+	@echo gcc -MM -MG -MT $(OBJDIR)/$*.o $(CXXFLAGS) -I$(SRCDIR) -I$(CHARMINC) $< \> $@
+	@gcc -MM -MG -MT $(OBJDIR)/$*.o $(CXXFLAGS) -I$(SRCDIR) -I$(CHARMINC) $< | \
 	sed 's/\([^[:space:]]\) \([^\\[:space:]]\)/\1 \\\n \2/g' | \
 	sed '/^[^/]*.\(def\|decl\)\./s@[^[:space:]]@$(SRCDIR)/&@' > $@
 

@@ -10,7 +10,7 @@ for i in $(cat "$1"); do
     mkdir "$i"
     cd "$i"
     if [[ -z $master ]]; then
-        nohup redis-server &
+        nohup /home/dominic/redis-3.0.0/src/redis-server &
         #nohup redis-cli flushdb &
         master=$i
     else
@@ -21,7 +21,7 @@ for i in $(cat "$1"); do
             echo "dbfilename dump$i.rdb"
             echo "slave-read-only no"
         } > redis.conf
-        nohup ssh -n $i "cd $dir/$i; $(type -p redis-server) ./redis.conf " &
+        nohup ssh -n $i "cd $dir/$i; $(type -p /home/dominic/redis-3.0.0/src/redis-server) ./redis.conf " &
         echo "started slave on $i"
     fi
     sleep 2
