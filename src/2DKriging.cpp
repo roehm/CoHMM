@@ -329,7 +329,7 @@ template <typename T> void doParallelCalls(Node * fields, Node * fluxes, Input *
 	std::map<Conserved, std::list<gridPoint>, ConservedComparator_c> taskMap;
 
 	std::vector<fluxInput> fluxInArgs;
-    char headNode[1024];
+        char headNode[1024];
 	strcpy(headNode, in->head_node.c_str());
 
 	//Do kriging first so as to prioritize the cheaper solution
@@ -339,8 +339,8 @@ template <typename T> void doParallelCalls(Node * fields, Node * fluxes, Input *
 		int y = iter->y;
 		Conserved *w = &fields[x + dim_x*y].w;
 		taskMap[*w].push_back(*iter);
-        fields[x + dim_x*y].f.ca = 6;
-        ca->kPoints++;
+                fields[x + dim_x*y].f.ca = 6;
+                ca->kPoints++;
 		//Check if it was unique
 		if(taskMap[*w].size() == 1)
 		{
@@ -368,8 +368,8 @@ template <typename T> void doParallelCalls(Node * fields, Node * fluxes, Input *
 		int y = iter->y;
 		Conserved *w = &fields[x+dim_x*y].w;
 		taskMap[*w].push_back(*iter);
-        fields[x + dim_x*y].f.ca = 2;
-        ca->cPoints++;
+                fields[x + dim_x*y].f.ca = 2;
+                ca->cPoints++;
 		//Check if it was unique
 		if(taskMap[*w].size() == 1)
 		{
@@ -384,9 +384,9 @@ template <typename T> void doParallelCalls(Node * fields, Node * fluxes, Input *
 #else
 			fluxInArgs.push_back(fluxInput(*w, true, headNode, in->kr_threshold));
 #endif
-            ca->comd++;
-            ca->cPoints--;
-            fields[x + dim_x*y].f.ca = 1;
+                        ca->comd++;
+                        ca->cPoints--;
+                        fields[x + dim_x*y].f.ca = 1;
 		}
 	}
 #ifdef CNC
@@ -398,14 +398,14 @@ template <typename T> void doParallelCalls(Node * fields, Node * fluxes, Input *
 	//context->wait();
 #endif
 #ifndef LOADBAR
-	printf("About to run parallel kriging & MD: %d args, %d MD, %d kriging\n", (int)fluxInArgs.size(), ca->comd, ca->krig);
-  in->co_tasks+=ca->comd;
-  in->kr_tasks+=ca->krig;
+    printf("About to run parallel kriging & MD: %d args, %d MD, %d kriging\n", (int)fluxInArgs.size(), ca->comd, ca->krig);
+    in->co_tasks+=ca->comd;
+    in->kr_tasks+=ca->krig;
 #endif
 	
-	//Empty both task lists
-	comdTasks->clear();
-	krigTasks->clear();
+    //Empty both task lists
+    comdTasks->clear();
+    krigTasks->clear();
 
 #ifdef CHARM
     CkReductionMsg *fluxOut;
@@ -468,15 +468,15 @@ template <typename T> void doParallelCalls(Node * fields, Node * fluxes, Input *
 #ifdef CHARM
 			memcpy(f->f, &fluxOutCharm[i].f, sizeof(double)*7);
 			memcpy(g->f, &fluxOutCharm[i].g, sizeof(double)*7);
-      fluxInArgs[i].callCoMD = fluxOutCharm[i].callCoMD;
+                        fluxInArgs[i].callCoMD = fluxOutCharm[i].callCoMD;
 #elif CNC
-	   	memcpy(f->f, fluxOutCnc.f, sizeof(double)*7);
+	   	        memcpy(f->f, fluxOutCnc.f, sizeof(double)*7);
 			memcpy(g->f, fluxOutCnc.g, sizeof(double)*7);
-      fluxInArgs[i].callCoMD = fluxOutCnc.callCoMD;
+                        fluxInArgs[i].callCoMD = fluxOutCnc.callCoMD;
 #elif defined (SERIAL) || (OMP)
-      memcpy(f->f, &fluxOutOmp[i].f, sizeof(double)*7);
-      memcpy(g->f, &fluxOutOmp[i].g, sizeof(double)*7);
-      fluxInArgs[i].callCoMD = fluxOutOmp[i].callCoMD;
+                        memcpy(f->f, &fluxOutOmp[i].f, sizeof(double)*7);
+                        memcpy(g->f, &fluxOutOmp[i].g, sizeof(double)*7);
+                        fluxInArgs[i].callCoMD = fluxOutOmp[i].callCoMD;
 #elif CIRCLE
       memcpy(f->f, fVec[0], sizeof(double)*7);
       memcpy(g->f, gVec[0], sizeof(double)*7);
@@ -650,24 +650,24 @@ template <typename T> void doFluxes(Node* fields, Node* fluxes, int grid_size, I
 			//If we found it
 			if(useDB == true)
 			{
-                ca.db++;
-                fields[x + dim_x*y].f.ca = 3;
+        ca.db++;
+        fields[x + dim_x*y].f.ca = 3;
 				//Set the result from the database
 				memcpy(fluxes[x+dim_x*y].f.f, fVec[0], sizeof(double)*7);
 				memcpy(fluxes[x+dim_x*y].g.f, gVec[0], sizeof(double)*7);
 			
-            }
+      }
 			//We did not
 			else
 			{
 				//Check the gradient
-                bool smallGradient;
-                if(in->kriging == 1){
+          bool smallGradient;
+          if(in->kriging == 1){
 				  smallGradient = checkGradient(x, y, fields, *in);
-                }else{
+          }else{
 				  //If gradient is small enough
-                  smallGradient = false;
-                }
+            smallGradient = false;
+          }
 				if(smallGradient == true)
 				{
 					//Grab krig database
@@ -675,28 +675,28 @@ template <typename T> void doFluxes(Node* fields, Node* fluxes, int grid_size, I
 					std::vector<double *> fVecK;
 					std::vector<double *> gVecK;
 
-                    if(in->kriging_db == 1){
-                      startKrDb = getUnixTime();
+          if(in->kriging_db == 1){
+            startKrDb = getUnixTime();
 
-			          getCachedSortedSubBucketNearZero(fields[x + dim_x*y].w.w, (char *)"krig", headRedis, krigDigits, 1, &wVecK, &fVecK, &gVecK, zeroThresh, &dbCache);
-                      //if(diff > 1.0) printf("get kdb timing %lf\n", diff);
-			          //fflush(stdout);
-				      //Check for exact value with kriging key
-				      bool useDB = ifConservedFieldsMatch(fields[x+dim_x*y].w.w, &wVecK, 0.0);
-				      //If we found it
-                      //if(int(wVec.size())>0)printf("wvecsize %i\n", int(wVec.size()));
-                      stopKrDb = getUnixTime();
-                      tm.krDb += stopKrDb - startKrDb;
-                    }else{
-                      bool useDB = false;
-                    }
+			      getCachedSortedSubBucketNearZero(fields[x + dim_x*y].w.w, (char *)"krig", headRedis, krigDigits, 1, &wVecK, &fVecK, &gVecK, zeroThresh, &dbCache);
+            //if(diff > 1.0) printf("get kdb timing %lf\n", diff);
+			      //fflush(stdout);
+				    //Check for exact value with kriging key
+				    bool useDB = ifConservedFieldsMatch(fields[x+dim_x*y].w.w, &wVecK, 0.0);
+				    //If we found it
+            //if(int(wVec.size())>0)printf("wvecsize %i\n", int(wVec.size()));
+            stopKrDb = getUnixTime();
+            tm.krDb += stopKrDb - startKrDb;
+          }else{
+              bool useDB = false;
+          }
 					if(useDB == true)
 					{
-                        ca.kdb++;
-                        fields[x + dim_x*y].f.ca = 4;
-						//Set the result from the database
-						memcpy(fluxes[x+dim_x*y].f.f, fVecK[0], sizeof(double)*7);
-						memcpy(fluxes[x+dim_x*y].g.f, gVecK[0], sizeof(double)*7);
+             ca.kdb++;
+             fields[x + dim_x*y].f.ca = 4;
+						 //Set the result from the database
+					   memcpy(fluxes[x+dim_x*y].f.f, fVecK[0], sizeof(double)*7);
+						 memcpy(fluxes[x+dim_x*y].g.f, gVecK[0], sizeof(double)*7);
 
 					}
                     //use at least 2 w's for kriging
