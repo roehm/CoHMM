@@ -15,6 +15,8 @@ extern "C"
 #include <hiredis.h>
 #include <stdlib.h>
 }
+#include <stdio.h>
+#include <iostream>
 #ifdef CIRCLE
 #include <sstream>
 #include <boost/archive/text_iarchive.hpp>
@@ -141,12 +143,14 @@ void fluxFn(CIRCLE_handle *handle)
 		theInput.temperature = 0;
 		theInput.initialDelta = 0.0;
 		theInput.defGrad[0] = strain_xx;
+                //printf("defGrad xx: %f\n",strain_xx);
 		theInput.defGrad[1] = strain_xy;
 		theInput.defGrad[2] = strain_yx;
 		theInput.defGrad[3] = strain_yy;
-		theInput.enDens = energy;
-		theInput.momDens[0] = momentum_x;
-		theInput.momDens[1] = momentum_y;
+                double invDeterminatDefGrad = 1./(strain_xx*strain_yy-strain_xy*strain_yx);
+		theInput.enDens = invDeterminatDefGrad*energy;
+		theInput.momDens[0] = invDeterminatDefGrad*momentum_x;
+		theInput.momDens[1] = invDeterminatDefGrad*momentum_y;
 		theInput.momDens[2] = 0.0;
 		//theInput.rank = rank;
 		//theInput.calls = calls;
@@ -165,6 +169,7 @@ void fluxFn(CIRCLE_handle *handle)
 		out->f[3] = 0.0;
 		out->f[4] = determinatDefGrad*theRet.stressXX;
 		out->f[5] = determinatDefGrad*theRet.stressXY;
+                //printf("stress xx: %f\n",out->f[4]);
 		out->g[0] = 0.0;
 		out->g[1] = 0.0;
 		out->g[2] = momentum_x/rho;
@@ -356,9 +361,10 @@ void fluxFn(CIRCLE_handle *handle)
 		    theInput.defGrad[1] = strain_xy;
 		    theInput.defGrad[2] = strain_yx;
 		    theInput.defGrad[3] = strain_yy;
-		    theInput.enDens = energy;
-		    theInput.momDens[0] = momentum_x;
-		    theInput.momDens[1] = momentum_y;
+                    double invDeterminatDefGrad = 1./(strain_xx*strain_yy-strain_xy*strain_yx);
+		    theInput.enDens = invDeterminatDefGrad*energy;
+		    theInput.momDens[0] = invDeterminatDefGrad*momentum_x;
+		    theInput.momDens[1] = invDeterminatDefGrad*momentum_y;
 		    theInput.momDens[2] = 0.0;
 		    //theInput.rank = rank;
 		    //theInput.calls = calls;
